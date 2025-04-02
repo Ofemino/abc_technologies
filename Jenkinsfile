@@ -4,16 +4,16 @@ pipeline {
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         MAVEN_HOME = "/usr/bin/mvn"
-        PATH = ${MAVEN_HOME}bin${JAVA_HOME}bin${env.PATH}
+        PATH = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin:${env.PATH}"
         DOCKER_IMAGE = 'abc_technologies'
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch 'main', 
-                    credentialsId 'abc_tech', 
-                    url 'https://github.com/Ofemino/abc_technologies.git'
+                git branch: 'main', 
+                    credentialsId: 'abc_tech', 
+                    url: 'https://github.com/Ofemino/abc_technologies.git'
             }
         }
 
@@ -44,7 +44,13 @@ pipeline {
 
         stage('Archive Build Artifacts') {
             steps {
-                archiveArtifacts artifacts '/var/lib/jenkins/workspace/Abc_Tech_Project/target/abctech.war', fingerprint true
+                script {
+                    if (fileExists('target/abctech.war')) {
+                        archiveArtifacts artifacts: 'target/abctech.war', fingerprint: true
+                    } else {
+                        error 'The artifact abctech.war does not exist in the target directory.'
+                    }
+                }
             }
         }
 
