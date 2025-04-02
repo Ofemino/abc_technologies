@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
-        MAVEN_HOME = "/usr/bin/mvn"
-        PATH = "${MAVEN_HOME}/bin:${JAVA_HOME}/bin:${env.PATH}"
+        MAVEN_HOME = "/usr/bin"
+        PATH = "${MAVEN_HOME}:${JAVA_HOME}/bin:${env.PATH}"
         DOCKER_IMAGE = 'abc_technologies'
     }
 
@@ -26,9 +26,12 @@ pipeline {
 
         stage('Build Project') {
             steps {
-                sh 'mvn clean package'
+                echo 'Building the project using Maven...'
+                sh 'mvn clean package -X'
             }
         }
+
+        
 
         stage('Run Tests') {
             steps {
@@ -42,13 +45,16 @@ pipeline {
             }
         }
 
-        stage('Archive Build Artifacts') {
+       stage('Archive Build Artifacts') {
             steps {
                 script {
+                    sh 'ls -l target'
                     if (fileExists('target/abctech.war')) {
+                        echo "WAR file found, archiving..."
                         archiveArtifacts artifacts: 'target/abctech.war', fingerprint: true
                     } else {
-                        error 'The artifact abctech.war does not exist in the target directory.'
+                        echo "WAR file NOT found!"
+                        error "WAR file does not exist. Build may have failed."
                     }
                 }
             }
