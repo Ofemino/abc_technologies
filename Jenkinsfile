@@ -43,7 +43,7 @@ pipeline {
 
         stage('Archive Build Artifacts') {
             steps {
-                archiveArtifacts artifacts 'target.war', fingerprint true
+                archiveArtifacts artifacts '/var/lib/jenkins/workspace/Abc_Tech_Project/target/abctech.war', fingerprint true
             }
         }
     }
