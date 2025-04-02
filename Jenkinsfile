@@ -5,6 +5,7 @@ pipeline {
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         MAVEN_HOME = "/usr/bin/mvn"
         PATH = ${MAVEN_HOME}bin${JAVA_HOME}bin${env.PATH}
+        DOCKER_IMAGE = 'abc_technologies'
     }
 
     stages {
@@ -44,6 +45,16 @@ pipeline {
         stage('Archive Build Artifacts') {
             steps {
                 archiveArtifacts artifacts '/var/lib/jenkins/workspace/Abc_Tech_Project/target/abctech.war', fingerprint true
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credential') {
+                        docker.image(DOCKER_IMAGE).push('latest')
+                    }
+                }
             }
         }
     }
