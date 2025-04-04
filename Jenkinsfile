@@ -1,5 +1,11 @@
 pipeline {
     agent any
+    
+     tools {
+        git 'DefaultGit'  // Refers to the Git tool added in Global Tool Configuration
+        jdk 'OpenJDK 17'  // Refers to the JDK tool added in Global Tool Configuration
+        maven 'Maven 3.8.1'  // Refers to the Maven tool added in Global Tool Configuration
+    }
 
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
