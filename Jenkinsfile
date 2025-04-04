@@ -49,9 +49,9 @@ pipeline {
             steps {
                 script {
                     sh 'ls -l target'
-                    if (fileExists('target/abctech.war')) {
+                   if (fileExists('target/ABCtechnologies-1.0.war')) { 
                         echo "WAR file found, archiving..."
-                        archiveArtifacts artifacts: 'target/abctech.war', fingerprint: true
+                        archiveArtifacts artifacts: 'target/ABCtechnologies-1.0.war', fingerprint: true
                     } else {
                         echo "WAR file NOT found!"
                         error "WAR file does not exist. Build may have failed."
