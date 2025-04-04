@@ -1,5 +1,13 @@
 pipeline {
     agent any
+    
+    stages {
+        stage('Test Pipeline') {
+            steps {
+                echo "🚀 Pipeline is executing!"
+            }
+        }
+    }
 
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
