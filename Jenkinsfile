@@ -14,6 +14,7 @@ pipeline {
                 git branch: 'main', 
                     credentialsId: 'abc_tech', 
                     url: 'https://github.com/Ofemino/abc_technologies.git'
+                echo "✅ Repo cloned successfully!"
             }
         }
 
@@ -51,7 +52,7 @@ pipeline {
                     sh 'ls -l target'
                    if (fileExists('target/ABCtechnologies-1.0.war')) { 
                         echo "WAR file found, archiving..."
-                        archiveArtifacts artifacts: 'target/ABCtechnologies-1.0.war', fingerprint: true
+                        archiveArtifacts artifacts: 'target/ABCtechnologies-1.0.war'
                     } else {
                         echo "WAR file NOT found!"
                         error "WAR file does not exist. Build may have failed."
