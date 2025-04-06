@@ -7,6 +7,7 @@ pipeline {
         PATH = "${MAVEN_HOME}:${JAVA_HOME}/bin:${env.PATH}"
         DOCKER_IMAGE = "ofemino/abc-tech-app"
         DOCKER_TAG = "latest"
+        DOCKER_CREDENTIALS = 'docker_cred'  // Store Docker credentials ID here
     }
 
     stages {
@@ -62,9 +63,13 @@ pipeline {
             steps {
                 script {
                     echo "⬆️ Pushing Docker image to Docker Hub..."
-                    withCredentials([usernamePassword(credentialsId: 'docker_cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        // Log in to Docker securely
                         sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                        docker.push("${DOCKER_IMAGE}:${DOCKER_TAG}")
+                        // Use docker.image() to push the image securely
+                        docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS}") {
+                            docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
+                        }
                     }
                 }
             }
