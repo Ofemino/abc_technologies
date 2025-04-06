@@ -5,8 +5,8 @@ pipeline {
         JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
         MAVEN_HOME = "/usr/share/maven"
         PATH = "${MAVEN_HOME}:${JAVA_HOME}/bin:${env.PATH}"
-        DOCKER_IMAGE = 'ofemino/abc-tech-app'  // Update this with your Docker Hub username and image name
-        DOCKER_TAG = 'latest'  // Tag for your Docker image
+        DOCKER_IMAGE = "ofemino/abc-tech-app"
+        DOCKER_TAG = "latest"
     }
 
     stages {
@@ -51,33 +51,20 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo "🐳 Building Docker image..."
                 script {
-                    // Build Docker image using the Dockerfile in the repo
-                    sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .'
-                }
-            }
-        }
-
-        stage('Login to Docker Hub') {
-            steps {
-                echo "🔐 Logging into Docker Hub..."
-                script {
-                    // Login to Docker Hub with Jenkins credentials
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credential') {
-                        echo "Successfully logged into Docker Hub"
-                    }
+                    echo "🐳 Building Docker image..."
+                    docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                echo "🚀 Pushing Docker image to Docker Hub..."
                 script {
-                    // Push Docker image to Docker Hub
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credential') {
-                        docker.image(DOCKER_IMAGE).push(DOCKER_TAG)
+                    echo "⬆️ Pushing Docker image to Docker Hub..."
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        docker.push("${DOCKER_IMAGE}:${DOCKER_TAG}")
                     }
                 }
             }
@@ -101,7 +88,7 @@ pipeline {
 
     post {
         success {
-            echo '🎉 Build, Docker image, and container deployed successfully!'
+            echo '🎉 Build and Docker push completed successfully!'
         }
         failure {
             echo '❌ Build failed. Please check logs.'
