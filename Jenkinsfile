@@ -5,7 +5,8 @@ pipeline {
         JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
         MAVEN_HOME = "/usr/share/maven"
         PATH = "${MAVEN_HOME}:${JAVA_HOME}/bin:${env.PATH}"
-        DOCKER_IMAGE = 'abc-tech-app'
+        DOCKER_IMAGE = 'ofemino/abc-tech-app'  // Update this with your Docker Hub username and image name
+        DOCKER_TAG = 'latest'  // Tag for your Docker image
     }
 
     stages {
@@ -52,18 +53,32 @@ pipeline {
             steps {
                 echo "🐳 Building Docker image..."
                 script {
-                    // Make sure Dockerfile exists and build the image
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    // Build Docker image using the Dockerfile in the repo
+                    sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .'
                 }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Login to Docker Hub') {
             steps {
-                echo "🚀 Running Docker container..."
+                echo "🔐 Logging into Docker Hub..."
                 script {
-                    // Run the Docker container and map Tomcat's 8080 to 8081
-                    sh 'docker run -d -p 8081:8080 --name abc-tech-container ${DOCKER_IMAGE}'
+                    // Login to Docker Hub with Jenkins credentials
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credential') {
+                        echo "Successfully logged into Docker Hub"
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "🚀 Pushing Docker image to Docker Hub..."
+                script {
+                    // Push Docker image to Docker Hub
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credential') {
+                        docker.image(DOCKER_IMAGE).push(DOCKER_TAG)
+                    }
                 }
             }
         }
