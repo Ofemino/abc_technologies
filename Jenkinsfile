@@ -1,84 +1,62 @@
 pipeline {
     agent any
-    
-     tools {
-        git 'DefaultGit'  // Refers to the Git tool added in Global Tool Configuration
-        jdk 'OpenJDK 17'  // Refers to the JDK tool added in Global Tool Configuration
-        maven 'Maven 3.8.1'  // Refers to the Maven tool added in Global Tool Configuration
-    }
 
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
         MAVEN_HOME = "/usr/bin"
         PATH = "${MAVEN_HOME}:${JAVA_HOME}/bin:${env.PATH}"
-        DOCKER_IMAGE = 'abc_technologies'
     }
 
     stages {
-
-        stage('Test Pipeline') {
+        stage('Checkout Code') {
             steps {
-                echo "🚀 Pipeline is executing!"
-            }
-        }
-
-        stage('Clone Repository') {
-            steps {
-                git branch: 'main', 
-                    credentialsId: 'abc_tech', 
+                echo "🔄 Checking out code from repository..."
+                git branch: 'main',
+                    credentialsId: 'abc_tech',
                     url: 'https://github.com/Ofemino/abc_technologies.git'
-                echo "✅ Repo cloned successfully!"
+                echo "✅ Code checked out successfully!"
             }
         }
 
-        stage('Setup Java & Maven') {
+        stage('Verify Java & Maven') {
             steps {
+                echo "⚙️ Verifying environment..."
                 sh 'java -version'
                 sh 'mvn -version'
             }
         }
 
-        stage('Build Project') {
+        stage('Compile Project') {
             steps {
-                echo 'Building the project using Maven...'
-                sh 'mvn clean package -X'
+                echo "🛠️ Compiling the project..."
+                sh 'mvn clean compile -X'
             }
         }
 
-        
-
-        stage('Run Tests') {
+        stage('Run Unit Tests') {
             steps {
+                echo "🧪 Running unit tests..."
                 sh 'mvn test'
             }
         }
 
-        stage('Code Coverage') {
+        stage('Package Application') {
             steps {
-                sh 'mvn jacocoreport'
+                echo "📦 Packaging application..."
+                sh 'mvn package'
             }
         }
 
-       stage('Archive Build Artifacts') {
+        stage('Archive WAR File') {
             steps {
                 script {
-                    sh 'ls -l target'
-                   if (fileExists('target/ABCtechnologies-1.0.war')) { 
-                        echo "WAR file found, archiving..."
+                    echo "📁 Checking for WAR file to archive..."
+                    if (fileExists('target/ABCtechnologies-1.0.war')) {
+                        echo "✅ WAR file found. Archiving..."
                         archiveArtifacts artifacts: 'target/ABCtechnologies-1.0.war'
                     } else {
-                        echo "WAR file NOT found!"
-                        error "WAR file does not exist. Build may have failed."
-                    }
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credential') {
-                        docker.image(DOCKER_IMAGE).push('latest')
+                        echo "❌ WAR file NOT found!"
+                        error "Build may have failed. WAR not generated."
                     }
                 }
             }
@@ -87,10 +65,10 @@ pipeline {
 
     post {
         success {
-            echo 'Build completed successfully!'
+            echo '🎉 Build and packaging completed successfully!'
         }
         failure {
-            echo 'Build failed. Check logs for details.'
+            echo '❌ Build failed. Please check logs.'
         }
     }
 }
